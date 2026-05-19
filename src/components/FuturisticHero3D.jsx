@@ -5,6 +5,13 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
+import facebookSvgUrl from "../assets/social/facebook.svg?url";
+import instagramSvgUrl from "../assets/social/instagram.svg?url";
+import linkedinSvgUrl from "../assets/social/linkedin.svg?url";
+import whatsappSvgUrl from "../assets/social/whatsapp.svg?url";
+import githubSvgUrl from "../assets/social/github.svg?url";
+import xSvgUrl from "../assets/social/x.svg?url";
+
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 const getQualitySettings = (quality) => {
@@ -62,7 +69,7 @@ const makeIconTexture = (label, bg = "#22d3ee") => {
   return tex;
 };
 
-const makeSocialLogoTexture = (brand) => {
+const makeSocialLogoTexture = (brand, logoUrl) => {
   const canvas = document.createElement("canvas");
   canvas.width = 128;
   canvas.height = 128;
@@ -97,113 +104,34 @@ const makeSocialLogoTexture = (brand) => {
   ctx.lineWidth = 6;
   ctx.stroke();
 
-  // Foreground "logo" (simple, vector-like)
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.fillStyle = "rgba(255,255,255,0.92)";
-  ctx.strokeStyle = "rgba(255,255,255,0.92)";
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 8;
+  tex.generateMipmaps = true;
 
-  if (brand === "instagram") {
-    // Rounded square + lens
-    const s = 44;
-    const rr = 12;
-    ctx.lineWidth = 7;
-    ctx.beginPath();
-    ctx.moveTo(-s + rr, -s);
-    ctx.lineTo(s - rr, -s);
-    ctx.quadraticCurveTo(s, -s, s, -s + rr);
-    ctx.lineTo(s, s - rr);
-    ctx.quadraticCurveTo(s, s, s - rr, s);
-    ctx.lineTo(-s + rr, s);
-    ctx.quadraticCurveTo(-s, s, -s, s - rr);
-    ctx.lineTo(-s, -s + rr);
-    ctx.quadraticCurveTo(-s, -s, -s + rr, -s);
-    ctx.closePath();
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.arc(0, 2, 14, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.arc(22, -22, 3.5, 0, Math.PI * 2);
-    ctx.fill();
-  } else if (brand === "whatsapp") {
-    // Chat bubble + phone
-    ctx.lineWidth = 7;
-    ctx.beginPath();
-    ctx.arc(0, 0, 30, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(-12, 28);
-    ctx.lineTo(-28, 36);
-    ctx.lineTo(-22, 18);
-    ctx.stroke();
-
-    ctx.lineWidth = 8;
-    ctx.beginPath();
-    ctx.arc(-4, -4, 10, -0.8, 0.9);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(8, 10, 10, 2.3, 4.0);
-    ctx.stroke();
-  } else if (brand === "github") {
-    // Simplified cat head
+  // Foreground logo (SVG) drawn async for crispness
+  if (logoUrl) {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      ctx.save();
+      ctx.shadowColor = "rgba(0,0,0,0.22)";
+      ctx.shadowBlur = 12;
+      const size = 72;
+      ctx.drawImage(img, x - size / 2, y - size / 2, size, size);
+      ctx.restore();
+      tex.needsUpdate = true;
+    };
+    img.src = logoUrl;
+  } else {
     ctx.fillStyle = "rgba(255,255,255,0.92)";
-    ctx.beginPath();
-    ctx.arc(0, 6, 26, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(-18, -2);
-    ctx.lineTo(-30, -20);
-    ctx.lineTo(-8, -12);
-    ctx.closePath();
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(18, -2);
-    ctx.lineTo(30, -20);
-    ctx.lineTo(8, -12);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.fillStyle = "rgba(0,0,0,0.35)";
-    ctx.beginPath();
-    ctx.arc(-9, 8, 4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(9, 8, 4, 0, Math.PI * 2);
-    ctx.fill();
-  } else if (brand === "x") {
-    ctx.lineWidth = 10;
-    ctx.beginPath();
-    ctx.moveTo(-22, -22);
-    ctx.lineTo(22, 22);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(22, -22);
-    ctx.lineTo(-22, 22);
-    ctx.stroke();
-  } else if (brand === "linkedin") {
     ctx.font = "800 54px system-ui, -apple-system, Segoe UI, Roboto, Arial";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("in", 0, 6);
-  } else {
-    // facebook fallback
-    ctx.font = "900 64px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("f", 0, 6);
+    ctx.fillText(brand[0]?.toUpperCase?.() ?? "?", x, y);
+    tex.needsUpdate = true;
   }
 
-  ctx.restore();
-
-  const tex = new THREE.CanvasTexture(canvas);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  tex.anisotropy = 2;
-  tex.generateMipmaps = true;
   return tex;
 };
 
@@ -335,36 +263,142 @@ const FuturisticHero3D = ({ className = "", quality = "auto" }) => {
       canvas.height = 256;
       const ctx = canvas.getContext("2d");
       if (!ctx) return null;
-      const g = ctx.createRadialGradient(128, 100, 20, 128, 128, 140);
-      g.addColorStop(0, "#1b6cff");
-      g.addColorStop(0.55, "#0a2a66");
-      g.addColorStop(1, "#050814");
+      // Ocean base (more saturated / "earthy")
+      const g = ctx.createRadialGradient(120, 96, 12, 128, 128, 150);
+      g.addColorStop(0, "#2aa8ff");
+      g.addColorStop(0.52, "#0b3a8a");
+      g.addColorStop(1, "#040615");
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, 256, 256);
-      // light noise
+
+      // Continents (hand-shaped silhouettes: cleaner / more "earth-like")
+      const fillPath = (points, color, alpha = 1) => {
+        if (!points?.length) return;
+        ctx.save();
+        ctx.fillStyle = color;
+        ctx.globalAlpha = alpha;
+        ctx.shadowColor = "rgba(0,0,0,0.25)";
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.moveTo(points[0][0], points[0][1]);
+        for (let i = 1; i < points.length; i += 1) {
+          const [x, y] = points[i];
+          const [px, py] = points[i - 1];
+          const cx = (px + x) / 2;
+          const cy = (py + y) / 2;
+          ctx.quadraticCurveTo(px, py, cx, cy);
+        }
+        const [lx, ly] = points[points.length - 1];
+        const [fx, fy] = points[0];
+        ctx.quadraticCurveTo(lx, ly, fx, fy);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      };
+
+      // Americas (left)
+      const americas = [
+        [56, 54], [70, 46], [82, 58], [76, 74], [86, 92], [78, 112], [64, 130], [54, 146],
+        [48, 164], [58, 184], [74, 196], [68, 212], [52, 210], [44, 190], [40, 160], [44, 126],
+        [38, 96], [44, 72],
+      ];
+
+      // Eurasia + Africa (right-ish)
+      const eurasiaAfrica = [
+        [126, 54], [150, 46], [176, 58], [196, 74], [206, 92], [196, 104], [176, 104], [166, 116],
+        [152, 118], [144, 104], [132, 100], [126, 112], [132, 130], [150, 142], [162, 156], [160, 174],
+        [144, 190], [132, 184], [124, 164], [120, 142], [112, 124], [112, 100], [118, 78],
+      ];
+
+      // Australia-ish
+      const australia = [
+        [188, 172], [200, 176], [208, 188], [202, 202], [188, 206], [176, 196], [178, 182],
+      ];
+
+      // Greenland-ish / small islands
+      const greenland = [
+        [92, 34], [108, 32], [116, 44], [106, 56], [90, 50],
+      ];
+
+      // Land base + darker edge for depth
+      fillPath(americas, "#2ecc71", 0.92);
+      fillPath(eurasiaAfrica, "#27ae60", 0.92);
+      fillPath(australia, "#2ecc71", 0.9);
+      fillPath(greenland, "#2ecc71", 0.86);
+
+      ctx.save();
+      ctx.globalCompositeOperation = "source-atop";
+      fillPath(americas, "rgba(0,0,0,0.10)", 1);
+      fillPath(eurasiaAfrica, "rgba(0,0,0,0.12)", 1);
+      fillPath(australia, "rgba(0,0,0,0.12)", 1);
+      ctx.restore();
+
+      // Deserts highlight (subtle, not noisy)
+      fillPath(
+        [
+          [146, 112], [166, 112], [176, 124], [166, 136], [146, 132], [138, 120],
+        ],
+        "rgba(241, 196, 15, 0.40)",
+        1
+      );
+      fillPath(
+        [
+          [64, 132], [78, 136], [86, 150], [78, 160], [64, 156], [58, 142],
+        ],
+        "rgba(241, 196, 15, 0.30)",
+        1
+      );
+
+      // Ice caps
+      ctx.save();
+      ctx.fillStyle = "rgba(255,255,255,0.75)";
+      ctx.shadowColor = "rgba(255,255,255,0.35)";
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.ellipse(128, 22, 64, 24, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(128, 236, 64, 24, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // Light noise (breaks banding / adds texture)
       const img = ctx.getImageData(0, 0, 256, 256);
       for (let i = 0; i < img.data.length; i += 4) {
-        const n = (Math.random() - 0.5) * 18;
+        const n = (Math.random() - 0.5) * 16;
         img.data[i + 0] = Math.min(255, Math.max(0, img.data[i + 0] + n));
         img.data[i + 1] = Math.min(255, Math.max(0, img.data[i + 1] + n));
         img.data[i + 2] = Math.min(255, Math.max(0, img.data[i + 2] + n));
       }
       ctx.putImageData(img, 0, 0);
+
+      // Simple shading pass (terminator-ish) to fake depth on the texture itself
+      ctx.save();
+      const shade = ctx.createRadialGradient(86, 86, 40, 140, 140, 170);
+      shade.addColorStop(0, "rgba(255,255,255,0.16)");
+      shade.addColorStop(0.55, "rgba(0,0,0,0)");
+      shade.addColorStop(1, "rgba(0,0,0,0.42)");
+      ctx.fillStyle = shade;
+      ctx.fillRect(0, 0, 256, 256);
+      ctx.restore();
+
       const tex = new THREE.CanvasTexture(canvas);
       tex.colorSpace = THREE.SRGBColorSpace;
-      tex.anisotropy = 2;
+      tex.anisotropy = 8;
       tex.generateMipmaps = true;
       return tex;
     })();
 
     const planetGeom = new THREE.SphereGeometry(0.7, settings.sphereSeg, settings.sphereSeg);
-    const planetMat = new THREE.MeshStandardMaterial({
+    const planetMat = new THREE.MeshPhysicalMaterial({
       map: diffuse ?? null,
-      color: 0x0b2b66,
-      metalness: 0.05,
-      roughness: 0.65,
-      emissive: new THREE.Color(0x113366),
-      emissiveIntensity: 0.6,
+      color: 0xffffff,
+      metalness: 0.06,
+      roughness: 0.52,
+      clearcoat: 0.65,
+      clearcoatRoughness: 0.18,
+      emissive: new THREE.Color(0x1b66ff),
+      emissiveIntensity: 0.95,
     });
     const planet = new THREE.Mesh(planetGeom, planetMat);
     planet.position.set(0, 0.08, 0);
@@ -372,12 +406,12 @@ const FuturisticHero3D = ({ className = "", quality = "auto" }) => {
     planet.receiveShadow = settings.shadows;
     composition.add(planet);
 
-    // Subtle Atmosphere Glow
+    // Atmosphere Glow (stronger / more colorful)
     const atmosGeom = new THREE.SphereGeometry(0.71, settings.sphereSeg, settings.sphereSeg);
     const atmosMat = new THREE.MeshBasicMaterial({
-      color: 0x4488ff,
+      color: 0x66ccff,
       transparent: true,
-      opacity: 0.26,
+      opacity: 0.36,
       blending: THREE.AdditiveBlending,
       side: THREE.BackSide,
       depthWrite: false,
@@ -385,19 +419,39 @@ const FuturisticHero3D = ({ className = "", quality = "auto" }) => {
     const atmos = new THREE.Mesh(atmosGeom, atmosMat);
     planet.add(atmos);
 
-    // Orbital Rings (Subtle)
-    const ringGeom = new THREE.TorusGeometry(1.3, 0.008, 16, 100);
-    const ringMat = new THREE.MeshBasicMaterial({ color: 0x4488ff, transparent: true, opacity: 0.35 });
-    const ring1 = new THREE.Mesh(ringGeom, ringMat);
-    ring1.rotation.x = Math.PI / 2.2;
-    composition.add(ring1);
+    // Orbital Rings (patterned, smaller, less chaotic)
+    const orbitGroups = [];
+    const ringColors = [0x66ccff, 0x00d4ff, 0x6d5cff];
+    const makeOrbitGroup = ({ tiltX, tiltZ, speed, colorIndex }) => {
+      const group = new THREE.Group();
+      group.rotation.x = tiltX;
+      group.rotation.z = tiltZ;
+      group.userData = { tiltX, tiltZ, speed };
 
-    const ring2 = ring1.clone();
-    ring2.rotation.x = Math.PI / 1.8;
-    ring2.rotation.y = Math.PI / 4;
-    ring2.material = ringMat.clone();
-    ring2.material.color.set(0x00d4ff);
-    composition.add(ring2);
+      for (let i = 0; i < 6; i += 1) {
+        const radius = 0.98 + i * 0.07; // tighter around the planet
+        const tube = 0.0038 + (i % 2) * 0.0012;
+        const geom = new THREE.TorusGeometry(radius, tube, 18, 160);
+        const mat = new THREE.MeshBasicMaterial({
+          color: ringColors[(colorIndex + i) % ringColors.length],
+          transparent: true,
+          opacity: 0.12 + i * 0.03,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        });
+        const ring = new THREE.Mesh(geom, mat);
+        ring.rotation.y = (i / 6) * Math.PI * 2;
+        group.add(ring);
+      }
+
+      composition.add(group);
+      orbitGroups.push(group);
+    };
+
+    // Three planes with consistent pattern
+    makeOrbitGroup({ tiltX: Math.PI / 2, tiltZ: 0, speed: 0.08, colorIndex: 0 }); // equatorial
+    makeOrbitGroup({ tiltX: Math.PI / 2.25, tiltZ: Math.PI / 7, speed: -0.06, colorIndex: 1 }); // slight tilt
+    makeOrbitGroup({ tiltX: Math.PI / 1.95, tiltZ: -Math.PI / 9, speed: 0.045, colorIndex: 2 }); // counter tilt
 
     // Flowing ribbon (transformed into a subtle energy stream)
     const curvePoints = [
@@ -422,12 +476,19 @@ const FuturisticHero3D = ({ className = "", quality = "auto" }) => {
     );
     composition.add(ribbon);
 
-    // Social media sprites (procedural, no network fetch)
-    const socialIcons = ["facebook", "whatsapp", "instagram", "linkedin", "github", "x"];
+    // Social media sprites (local SVGs -> crisp)
+    const socialIcons = [
+      { brand: "facebook", url: facebookSvgUrl },
+      { brand: "whatsapp", url: whatsappSvgUrl },
+      { brand: "instagram", url: instagramSvgUrl },
+      { brand: "linkedin", url: linkedinSvgUrl },
+      { brand: "github", url: githubSvgUrl },
+      { brand: "x", url: xSvgUrl },
+    ];
 
     const iconMeshes = [];
-    socialIcons.forEach((brand, i) => {
-      const texture = makeSocialLogoTexture(brand);
+    socialIcons.forEach(({ brand, url }, i) => {
+      const texture = makeSocialLogoTexture(brand, url);
       if (!texture) return;
       const material = iconMaterial(texture);
       const sprite = new THREE.Sprite(material);
@@ -568,6 +629,11 @@ const FuturisticHero3D = ({ className = "", quality = "auto" }) => {
       planet.rotation.y = t * 0.1;
       planet.rotation.x = 0.1;
 
+      // Orbit rings pattern motion (groups rotate with different speeds)
+      orbitGroups.forEach((group) => {
+        group.rotation.y = t * group.userData.speed;
+      });
+
       // Icons orbit + wobble
       iconMeshes.forEach((icon) => {
         const a = icon.userData.a + t * icon.userData.speed;
@@ -614,8 +680,13 @@ const FuturisticHero3D = ({ className = "", quality = "auto" }) => {
       ribbon.material.dispose();
       bg.geometry.dispose();
       bg.material.dispose();
-      ringGeom.dispose();
-      ringMat.dispose();
+
+      orbitGroups.forEach((group) => {
+        group.children.forEach((ring) => {
+          ring.geometry.dispose();
+          ring.material.dispose();
+        });
+      });
 
       iconMeshes.forEach(icon => {
         icon.material.map.dispose();

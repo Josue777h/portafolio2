@@ -5,7 +5,9 @@ import { ExternalLink } from 'lucide-react';
 import proyecto1 from '../img/proyecto1.webp';
 import proyecto2 from '../img/proyecto2.webp';
 import proyecto3 from '../img/proyecto3.webp';
+import proyecto4 from '../img/proyecto4.webp';
 import proyecto5 from '../img/proyecto5.webp';
+import proyecto6 from '../img/proyecto6.webp';
 
 const ProjectCard = ({ project, index }) => {
   const ref = useRef(null);
@@ -121,11 +123,11 @@ const Projects = () => {
       github: "#",
     },
     {
-      title: "SITEWEB BARBERSHOP",
-      description: "Diseño elegante y sistema de reservas para una de las barberías más exclusivas.",
-      image: proyecto3,
-      tags: ["Modern UI", "Booking", "Wix Editor"],
-      link: "https://josuexdsepulvedaja.wixsite.com/barber-la",
+      title: "SISTEMA DE VENTA POR WHATSAPP",
+      description: "Plataforma moderna y práctica diseñada para gestionar pedidos y ventas directamente desde WhatsApp de forma rápida y sencilla.",
+      image: proyecto4,
+      tags: ["Saas", "WhatsApp", "react"],
+      link: "https://benevolent-chimera-f8e360.netlify.app/",
       github: "#",
     },
     {
@@ -134,6 +136,14 @@ const Projects = () => {
       image: proyecto5,
       tags: ["SaaS", "Marketing", "React"],
       link: "https://systemnecs.com/",
+      github: "#",
+    },
+    {
+      title: "CARBONOR",
+      description: "Sitio web corporativo moderno desarrollado para una empresa de carbón, enfocado en mostrar sus servicios, productos y presencia empresarial de forma profesional y confiable.",
+      image: proyecto6,
+      tags: ["Saas", "WhatsApp", "react"],
+      link: "https://carbonor.com.co/",
       github: "#",
     },
   ];
