@@ -62,6 +62,151 @@ const makeIconTexture = (label, bg = "#22d3ee") => {
   return tex;
 };
 
+const makeSocialLogoTexture = (brand) => {
+  const canvas = document.createElement("canvas");
+  canvas.width = 128;
+  canvas.height = 128;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+
+  const defs = {
+    facebook: { bg: "#1877f2" },
+    whatsapp: { bg: "#25d366" },
+    instagram: { bg: "#e1306c" },
+    linkedin: { bg: "#0a66c2" },
+    github: { bg: "#111827" },
+    x: { bg: "#0f172a" },
+  };
+  const bg = defs[brand]?.bg ?? "#22d3ee";
+
+  const x = canvas.width / 2;
+  const y = canvas.height / 2;
+  const r = canvas.width * 0.44;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Background circle
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.closePath();
+  ctx.fillStyle = bg;
+  ctx.globalAlpha = 0.95;
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  ctx.strokeStyle = "rgba(255,255,255,0.35)";
+  ctx.lineWidth = 6;
+  ctx.stroke();
+
+  // Foreground "logo" (simple, vector-like)
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.fillStyle = "rgba(255,255,255,0.92)";
+  ctx.strokeStyle = "rgba(255,255,255,0.92)";
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+
+  if (brand === "instagram") {
+    // Rounded square + lens
+    const s = 44;
+    const rr = 12;
+    ctx.lineWidth = 7;
+    ctx.beginPath();
+    ctx.moveTo(-s + rr, -s);
+    ctx.lineTo(s - rr, -s);
+    ctx.quadraticCurveTo(s, -s, s, -s + rr);
+    ctx.lineTo(s, s - rr);
+    ctx.quadraticCurveTo(s, s, s - rr, s);
+    ctx.lineTo(-s + rr, s);
+    ctx.quadraticCurveTo(-s, s, -s, s - rr);
+    ctx.lineTo(-s, -s + rr);
+    ctx.quadraticCurveTo(-s, -s, -s + rr, -s);
+    ctx.closePath();
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(0, 2, 14, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(22, -22, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (brand === "whatsapp") {
+    // Chat bubble + phone
+    ctx.lineWidth = 7;
+    ctx.beginPath();
+    ctx.arc(0, 0, 30, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(-12, 28);
+    ctx.lineTo(-28, 36);
+    ctx.lineTo(-22, 18);
+    ctx.stroke();
+
+    ctx.lineWidth = 8;
+    ctx.beginPath();
+    ctx.arc(-4, -4, 10, -0.8, 0.9);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(8, 10, 10, 2.3, 4.0);
+    ctx.stroke();
+  } else if (brand === "github") {
+    // Simplified cat head
+    ctx.fillStyle = "rgba(255,255,255,0.92)";
+    ctx.beginPath();
+    ctx.arc(0, 6, 26, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(-18, -2);
+    ctx.lineTo(-30, -20);
+    ctx.lineTo(-8, -12);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(18, -2);
+    ctx.lineTo(30, -20);
+    ctx.lineTo(8, -12);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = "rgba(0,0,0,0.35)";
+    ctx.beginPath();
+    ctx.arc(-9, 8, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(9, 8, 4, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (brand === "x") {
+    ctx.lineWidth = 10;
+    ctx.beginPath();
+    ctx.moveTo(-22, -22);
+    ctx.lineTo(22, 22);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(22, -22);
+    ctx.lineTo(-22, 22);
+    ctx.stroke();
+  } else if (brand === "linkedin") {
+    ctx.font = "800 54px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("in", 0, 6);
+  } else {
+    // facebook fallback
+    ctx.font = "900 64px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("f", 0, 6);
+  }
+
+  ctx.restore();
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 2;
+  tex.generateMipmaps = true;
+  return tex;
+};
+
 const FuturisticHero3D = ({ className = "", quality = "auto" }) => {
   const containerRef = useRef(null);
   const cleanupRef = useRef(() => {});
@@ -88,7 +233,7 @@ const FuturisticHero3D = ({ className = "", quality = "auto" }) => {
     renderer.shadowMap.enabled = settings.shadows;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.0;
+    renderer.toneMappingExposure = 1.12;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
 
     container.appendChild(renderer.domElement);
@@ -106,7 +251,7 @@ const FuturisticHero3D = ({ className = "", quality = "auto" }) => {
     const ambient = new THREE.AmbientLight(0xffffff, 0.45);
     scene.add(ambient);
 
-    const planetLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    const planetLight = new THREE.DirectionalLight(0xffffff, 1.65);
     planetLight.position.set(2, 1, 3);
     scene.add(planetLight);
 
@@ -219,7 +364,7 @@ const FuturisticHero3D = ({ className = "", quality = "auto" }) => {
       metalness: 0.05,
       roughness: 0.65,
       emissive: new THREE.Color(0x113366),
-      emissiveIntensity: 0.25,
+      emissiveIntensity: 0.6,
     });
     const planet = new THREE.Mesh(planetGeom, planetMat);
     planet.position.set(0, 0.08, 0);
@@ -232,8 +377,10 @@ const FuturisticHero3D = ({ className = "", quality = "auto" }) => {
     const atmosMat = new THREE.MeshBasicMaterial({
       color: 0x4488ff,
       transparent: true,
-      opacity: 0.15,
-      side: THREE.BackSide
+      opacity: 0.26,
+      blending: THREE.AdditiveBlending,
+      side: THREE.BackSide,
+      depthWrite: false,
     });
     const atmos = new THREE.Mesh(atmosGeom, atmosMat);
     planet.add(atmos);
@@ -276,18 +423,11 @@ const FuturisticHero3D = ({ className = "", quality = "auto" }) => {
     composition.add(ribbon);
 
     // Social media sprites (procedural, no network fetch)
-    const socialIcons = [
-      { label: "f", color: "#1877f2" },
-      { label: "w", color: "#25d366" },
-      { label: "ig", color: "#e1306c" },
-      { label: "in", color: "#0a66c2" },
-      { label: "gh", color: "#111827" },
-      { label: "x", color: "#0f172a" },
-    ];
+    const socialIcons = ["facebook", "whatsapp", "instagram", "linkedin", "github", "x"];
 
     const iconMeshes = [];
-    socialIcons.forEach((icon, i) => {
-      const texture = makeIconTexture(icon.label, icon.color);
+    socialIcons.forEach((brand, i) => {
+      const texture = makeSocialLogoTexture(brand);
       if (!texture) return;
       const material = iconMaterial(texture);
       const sprite = new THREE.Sprite(material);
@@ -368,7 +508,7 @@ const FuturisticHero3D = ({ className = "", quality = "auto" }) => {
 
     // Postprocessing (optional - expensive)
     const composer = settings.bloom ? new EffectComposer(renderer) : null;
-    const bloom = settings.bloom ? new UnrealBloomPass(new THREE.Vector2(1, 1), 0.3, 0.4, 0.85) : null;
+    const bloom = settings.bloom ? new UnrealBloomPass(new THREE.Vector2(1, 1), 0.55, 0.45, 0.85) : null;
     if (composer) {
       composer.addPass(new RenderPass(scene, camera));
       composer.addPass(bloom);
@@ -394,7 +534,7 @@ const FuturisticHero3D = ({ className = "", quality = "auto" }) => {
       renderer.setSize(w, h, false);
       composer?.setSize?.(w, h);
       bloom?.setSize?.(w, h);
-      if (bloom) bloom.strength = w < 520 ? 0.3 : 0.45;
+      if (bloom) bloom.strength = w < 520 ? 0.45 : 0.75;
     };
     resize();
 
